@@ -1,0 +1,626 @@
+    import javax.swing.*;
+    import java.awt.*;
+    import java.awt.event.ActionEvent;
+    import java.awt.event.ActionListener;
+    import java.text.NumberFormat;
+    import java.text.ParseException; // Add this import
+    import java.util.ArrayList;
+    import java.util.Currency;
+    import java.util.HashMap;
+    import java.util.HashSet;
+    import java.util.Locale;
+    import java.text.DecimalFormat; // Add this import
+
+
+    public class VendingMachineGUI extends JFrame {
+        private HashSet<String> uniqueSelectedHotdogs;
+        private ArrayList<String> selectedHotdogs;
+        private HashMap<String, Integer> hotdogQuantities;
+        private HashMap<String, Integer> hotdogStock; // Add hotdogStock variable for remaining stock
+        private double totalPayment;
+        private double initialTotalPrice;
+        private JButton dispenseChangeButton;
+        private JButton regularHotdogButton;
+        private JButton baconHotdogButton;
+        private JButton cheezyHotdogButton;
+        private JButton chicagoHotdogButton;
+        private JButton bigMacDogsButton;
+        private JButton ultimateChiliDogsButton;
+        private JButton chickenSausageButton;
+        private JButton cheezySausageButton;
+        private JButton viewReceiptButton;
+        private JButton payReceiptButton;
+        private JButton addMoneyButton;
+        private JButton printSummaryButton; // Add the print summary button
+        private JLabel availableFundsLabel;
+        private JTextArea initialReceiptTextArea;
+        private NumberFormat currencyFormatter;
+        private JButton checkInventoryButton;
+        private double availableFunds;
+        private JButton restockItemButton;
+        private JComboBox<String> addMoneyComboBox;
+        private JCheckBox ketchupCheckbox;
+        private JCheckBox mustardCheckbox;
+        private JCheckBox mayoCheckbox;
+        private JCheckBox cheeseCheckbox;
+        private JCheckBox sauerkrautCheckbox;
+        private JCheckBox onionsCheckbox;
+        private ArrayList<String> selectedToppings;
+        private HashMap<String, Double> toppingPrices;
+        private double[] addMoneyAmounts = { 0.25, 1.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0, 1000.0 };
+
+        public VendingMachineGUI() {
+            uniqueSelectedHotdogs = new HashSet<>();
+            selectedHotdogs = new ArrayList<>();
+            hotdogQuantities = new HashMap<>();
+            hotdogStock = new HashMap<>(); // Initialize the hotdogStock HashMap
+            totalPayment = 0.0;
+            initialTotalPrice = 0.0;
+            availableFunds = 0;
+            selectedToppings = new ArrayList<>();
+            toppingPrices = new HashMap<>();
+
+            Locale philippinesLocale = new Locale("fil", "PH");
+            currencyFormatter = (DecimalFormat) DecimalFormat.getCurrencyInstance(philippinesLocale);
+            currencyFormatter.setMaximumFractionDigits(2);
+
+            regularHotdogButton = new JButton("Regular Hotdog");
+            baconHotdogButton = new JButton("Bacon Hotdog");
+            cheezyHotdogButton = new JButton("Cheezy Hotdog");
+            chicagoHotdogButton = new JButton("Chicago-Style Hotdog");
+            bigMacDogsButton = new JButton("Big Mac Dogs");
+            ultimateChiliDogsButton = new JButton("Ultimate Chili Dogs");
+            chickenSausageButton = new JButton("Chicken Sausage");
+            cheezySausageButton = new JButton("Cheezy Sausage");
+            viewReceiptButton = new JButton("View Receipt");
+            payReceiptButton = new JButton("Pay Receipt");
+            addMoneyButton = new JButton("Add Money");
+            printSummaryButton = new JButton("Print Summary"); // Initialize the print summary button
+            availableFundsLabel = new JLabel("Available Funds: " + currencyFormatter.format(availableFunds));
+            availableFundsLabel.setFont(new Font("Arial", Font.BOLD, 16));
+            dispenseChangeButton = new JButton("Dispense Change");
+            checkInventoryButton = new JButton("Check Inventory");
+            restockItemButton = new JButton("Restock item");
+
+            // Initialize checkboxes for toppings
+            ketchupCheckbox = new JCheckBox("Ketchup");
+            mustardCheckbox = new JCheckBox("Mustard");
+            mayoCheckbox = new JCheckBox("Mayonnaise");
+            cheeseCheckbox = new JCheckBox("Cheese");
+            sauerkrautCheckbox = new JCheckBox("Sauerkraut");
+            onionsCheckbox = new JCheckBox("Onions");
+
+            addMoneyComboBox = new JComboBox<>();
+            for (double amount : addMoneyAmounts) {
+                addMoneyComboBox.addItem(currencyFormatter.format(amount));
+            }
+
+            // Restock the initial stock values for each hotdog
+            hotdogStock.put("Regular Hotdog", 50);
+            hotdogStock.put("Bacon Hotdog", 50);
+            hotdogStock.put("Cheezy Hotdog", 50);
+            hotdogStock.put("Chicago-Style Hotdog", 50);
+            hotdogStock.put("Big Mac Dogs", 50);
+            hotdogStock.put("Ultimate Chili Dogs", 50);
+            hotdogStock.put("Chicken Sausage", 50);
+            hotdogStock.put("Cheezy Sausage", 50);
+
+            // Initialize the prices of toppings
+            toppingPrices.put("Ketchup", 5.0);
+            toppingPrices.put("Mustard", 5.0);
+            toppingPrices.put("Mayonnaise", 5.0);
+            toppingPrices.put("Cheese", 10.0);
+            toppingPrices.put("Sauerkraut", 15.0);
+            toppingPrices.put("Onions", 5.0);
+
+            JPanel buttonPanel = new JPanel(new GridLayout(5, 2, 10, 10));
+            buttonPanel.setBackground(new Color(240, 240, 240));
+
+            Font buttonFont = new Font("Arial", Font.BOLD, 14);
+            regularHotdogButton.setFont(buttonFont);
+            baconHotdogButton.setFont(buttonFont);
+            cheezyHotdogButton.setFont(buttonFont);
+            chicagoHotdogButton.setFont(buttonFont);
+            bigMacDogsButton.setFont(buttonFont);
+            ultimateChiliDogsButton.setFont(buttonFont);
+            chickenSausageButton.setFont(buttonFont);
+            cheezySausageButton.setFont(buttonFont);
+
+            buttonPanel.add(regularHotdogButton);
+            buttonPanel.add(baconHotdogButton);
+            buttonPanel.add(cheezyHotdogButton);
+            buttonPanel.add(chicagoHotdogButton);
+            buttonPanel.add(bigMacDogsButton);
+            buttonPanel.add(ultimateChiliDogsButton);
+            buttonPanel.add(chickenSausageButton);
+            buttonPanel.add(cheezySausageButton);
+
+
+
+            initialReceiptTextArea = new JTextArea(20, 20);
+            initialReceiptTextArea.setEditable(false);
+            initialReceiptTextArea.setLineWrap(true);
+            JScrollPane receiptScrollPane = new JScrollPane(initialReceiptTextArea);
+
+            JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+            mainPanel.setBackground(new Color(255, 255, 255));
+
+            mainPanel.add(buttonPanel, BorderLayout.CENTER);
+            mainPanel.add(receiptScrollPane, BorderLayout.WEST);
+
+            JPanel payAndAddMoneyPanel = new JPanel(new FlowLayout());
+            payAndAddMoneyPanel.setBackground(new Color(240, 240, 240));
+            payAndAddMoneyPanel.add(payReceiptButton);
+            payAndAddMoneyPanel.add(addMoneyButton);
+            payAndAddMoneyPanel.add(addMoneyComboBox);
+            payAndAddMoneyPanel.add(dispenseChangeButton);
+            payAndAddMoneyPanel.add(checkInventoryButton);
+            payAndAddMoneyPanel.add(restockItemButton);
+
+
+            mainPanel.add(payAndAddMoneyPanel, BorderLayout.SOUTH);
+
+            JLabel toppingsLabel = new JLabel("Select your toppings:");
+            buttonPanel.add(toppingsLabel);
+
+            buttonPanel.add(ketchupCheckbox);
+            buttonPanel.add(mustardCheckbox);
+            buttonPanel.add(mayoCheckbox);
+            buttonPanel.add(cheeseCheckbox);
+            buttonPanel.add(sauerkrautCheckbox);
+            buttonPanel.add(onionsCheckbox);
+            initializeCheckboxState();
+
+            JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            infoPanel.add(availableFundsLabel);
+
+            mainPanel.add(infoPanel, BorderLayout.NORTH);
+
+            payReceiptButton.setEnabled(false);
+            printSummaryButton.setEnabled(true); // Enable the print summary button
+
+            regularHotdogButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addHotdogToReceipt("Regular Hotdog", 30.0);
+                    updateToppingsCheckboxState(); // Enable/disable toppings checkboxes
+                }
+            });
+
+            baconHotdogButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addHotdogToReceipt("Bacon Hotdog", 40.0);
+                    updateToppingsCheckboxState(); // Enable/disable toppings checkboxes
+                }
+            });
+
+            cheezyHotdogButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addHotdogToReceipt("Cheezy Hotdog", 50.0);
+                    updateToppingsCheckboxState(); // Enable/disable toppings checkboxes
+                }
+            });
+
+            chicagoHotdogButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addHotdogToReceipt("Chicago-Style Hotdog", 60.0);
+                    updateToppingsCheckboxState(); // Enable/disable toppings checkboxes
+                }
+            });
+
+            bigMacDogsButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addHotdogToReceipt("Big Mac Dogs", 70.0);
+                    updateToppingsCheckboxState(); // Enable/disable toppings checkboxes
+                }
+            });
+
+            ultimateChiliDogsButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addHotdogToReceipt("Ultimate Chili Dogs", 80.0);
+                    updateToppingsCheckboxState(); // Enable/disable toppings checkboxes
+                }
+            });
+
+            chickenSausageButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addHotdogToReceipt("Chicken Sausage", 90.0);
+                    updateToppingsCheckboxState(); // Enable/disable toppings checkboxes
+                }
+            });
+
+            cheezySausageButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addHotdogToReceipt("Cheezy Sausage", 100.0);
+                    updateToppingsCheckboxState(); // Enable/disable toppings checkboxes
+                }
+            });
+
+            viewReceiptButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    viewReceipt();
+                }
+            });
+
+            payReceiptButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    payReceipt();
+                }
+            });
+
+            addMoneyButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addMoney();
+                }
+            });
+
+            printSummaryButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    printSummary();
+                }
+            });
+
+            dispenseChangeButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    dispenseChange();
+                }
+            });
+
+            checkInventoryButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    checkInventory();
+                }
+            });
+
+            restockItemButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    showRestockDialog();
+                }
+            });
+
+            ketchupCheckbox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    handleToppingCheckbox("Ketchup", 5.0, ketchupCheckbox.isSelected());
+                }
+            });
+
+            mustardCheckbox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    handleToppingCheckbox("Mustard", 5.0, mustardCheckbox.isSelected());
+                }
+            });
+
+            mayoCheckbox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    handleToppingCheckbox("Mayonnaise", 5.0, mayoCheckbox.isSelected());
+                }
+            });
+
+            cheeseCheckbox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    handleToppingCheckbox("Cheese", 10.0, cheeseCheckbox.isSelected());
+                }
+            });
+
+            sauerkrautCheckbox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    handleToppingCheckbox("Sauerkraut", 15.0, sauerkrautCheckbox.isSelected());
+                }
+            });
+
+            onionsCheckbox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    handleToppingCheckbox("Onions", 5.0, onionsCheckbox.isSelected());
+                }
+            });
+
+            setTitle("Hotdog Vending Machine");
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            setSize(600, 400);
+            setLocationRelativeTo(null);
+            setContentPane(mainPanel);
+            setVisible(true);
+
+            restockItemButton.setEnabled(!hotdogStock.isEmpty());
+        }
+
+        private void addHotdogToReceipt(String hotdogName, double hotdogPrice) {
+            if (hotdogStock.getOrDefault(hotdogName, 0) > 0 && totalPayment + hotdogPrice <= availableFunds) {
+                if (uniqueSelectedHotdogs.add(hotdogName)) {
+                    selectedHotdogs.add(hotdogName);
+                }
+
+                hotdogQuantities.put(hotdogName, hotdogQuantities.getOrDefault(hotdogName, 0) + 1);
+                hotdogStock.put(hotdogName, hotdogStock.getOrDefault(hotdogName, 0) - 1); // Decrement the stock
+                totalPayment += hotdogPrice;
+                initialTotalPrice = totalPayment;
+                viewReceipt();
+
+                String message = hotdogName + " has been added to your cart.";
+                JOptionPane.showMessageDialog(this, message, "Hotdog Added to Cart", JOptionPane.INFORMATION_MESSAGE);
+            } else if (hotdogStock.getOrDefault(hotdogName, 0) <= 0) {
+                String message = hotdogName + " is out of stock. Please choose another hotdog.";
+                JOptionPane.showMessageDialog(this, message, "Out of Stock", JOptionPane.WARNING_MESSAGE);
+            } else {
+                String message = "Insufficient funds. Please add more money.";
+                JOptionPane.showMessageDialog(this, message, "Payment Failed", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+
+        private void payReceipt() {
+            if (totalPayment <= availableFunds) {
+                String message = "Thank you for your purchase!\n" +
+                        "You paid: " + currencyFormatter.format(totalPayment) + "\n" +
+                        "Enjoy your hotdogs!";
+                JOptionPane.showMessageDialog(this, message, "Payment Successful", JOptionPane.INFORMATION_MESSAGE);
+
+                availableFunds -= totalPayment; // Deduct the totalPayment from availableFunds
+
+                uniqueSelectedHotdogs.clear();
+                selectedHotdogs.clear();
+                hotdogQuantities.clear();
+                totalPayment = 0.0;
+                initialTotalPrice = 0.0;
+                initialReceiptTextArea.setText("");
+                payReceiptButton.setEnabled(false);
+
+                updateAvailableFundsLabel(); // Update the available funds label after deduction
+                initializeCheckboxState(); // Reset checkboxes to initial state
+            } else {
+                String message = "Insufficient funds. Please add more money.";
+                JOptionPane.showMessageDialog(this, message, "Payment Failed", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+
+
+        private void updateAvailableFundsLabel() {
+            availableFundsLabel.setText("Available Funds: " + currencyFormatter.format(availableFunds));
+        }
+
+        private void addMoney() {
+            String selectedAmountStr = (String) addMoneyComboBox.getSelectedItem();
+            try {
+                double addedMoney = currencyFormatter.parse(selectedAmountStr).doubleValue();
+                availableFunds += addedMoney;
+
+                String message = "You added " + currencyFormatter.format(addedMoney) + " to your available funds.\n" +
+                        "Your current available funds: " + currencyFormatter.format(availableFunds);
+                JOptionPane.showMessageDialog(this, message, "Money Added", JOptionPane.INFORMATION_MESSAGE);
+
+                updateAvailableFundsLabel();
+            } catch (ParseException ex) {
+                String message = "Error parsing the selected amount.";
+                JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
+
+        private void printSummary() {
+            StringBuilder summary = new StringBuilder();
+            summary.append("Hotdog Inventory Summary:\n\n");
+            for (String hotdog : hotdogStock.keySet()) {
+                int quantity = hotdogQuantities.getOrDefault(hotdog, 0);
+                int remainingStock = hotdogStock.getOrDefault(hotdog, 0);
+                double price = getHotdogPrice(hotdog);
+                summary.append(hotdog + ": " + quantity + " (Remaining Stock: " + remainingStock + ") - " + currencyFormatter.format(quantity * price) + "\n");
+            }
+
+            JOptionPane.showMessageDialog(this, summary.toString(), "Inventory Summary", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        private void dispenseChange() {
+            if (availableFunds > 0) {
+                String message = "Change dispensed: " + currencyFormatter.format(availableFunds) + "\n" +
+                        "Thank you for using our vending machine!";
+                JOptionPane.showMessageDialog(this, message, "Change Dispensed", JOptionPane.INFORMATION_MESSAGE);
+
+                availableFunds = 0; // Set availableFunds to zero after dispensing change
+                updateAvailableFundsLabel(); // Update the available funds label
+            } else {
+                String message = "No change available to dispense.";
+                JOptionPane.showMessageDialog(this, message, "No Change", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+
+        private void checkInventory() {
+            StringBuilder inventorySummary = new StringBuilder();
+            inventorySummary.append("Hotdog Inventory Summary:\n\n");
+            for (String hotdog : hotdogStock.keySet()) {
+                int remainingStock = hotdogStock.getOrDefault(hotdog, 0);
+                inventorySummary.append(hotdog + ": " + remainingStock + "\n");
+            }
+
+            JOptionPane.showMessageDialog(this, inventorySummary.toString(), "Inventory Summary", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        private void showRestockDialog() {
+            JComboBox<String> hotdogDropdown = new JComboBox<>();
+            for (String hotdog : hotdogStock.keySet()) {
+                hotdogDropdown.addItem(hotdog);
+            }
+
+            JTextField quantityField = new JTextField(5);
+            JPanel inputPanel = new JPanel();
+            inputPanel.add(new JLabel("Select item to restock: "));
+            inputPanel.add(hotdogDropdown);
+            inputPanel.add(new JLabel("Enter quantity to restock: "));
+            inputPanel.add(quantityField);
+
+            int option = JOptionPane.showConfirmDialog(this, inputPanel, "Restock Item", JOptionPane.OK_CANCEL_OPTION);
+            if (option == JOptionPane.OK_OPTION) {
+                String selectedHotdog = (String) hotdogDropdown.getSelectedItem();
+                int currentStock = hotdogStock.getOrDefault(selectedHotdog, 0);
+                int maxRestock = 100 - currentStock; // Limit the restock to 100 (maximum stock per item)
+
+                try {
+                    int restockQuantity = Integer.parseInt(quantityField.getText());
+                    restockQuantity = Math.min(restockQuantity, maxRestock);
+
+                    if (restockQuantity > 0) {
+                        hotdogStock.put(selectedHotdog, currentStock + restockQuantity);
+                        String message = restockQuantity + " " + selectedHotdog + "(s) restocked.";
+                        JOptionPane.showMessageDialog(this, message, "Restock Successful", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Invalid restock quantity.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Invalid restock quantity.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            restockItemButton.setEnabled(!hotdogStock.isEmpty());
+        }
+
+        private void viewReceipt() {
+            initialReceiptTextArea.setText("");
+            initialReceiptTextArea.append("Your Receipt:\n\n");
+
+            double toppingsPrice = getToppingsPrice(); // Calculate the total toppings price
+            totalPayment = 0.0; // Reset the total payment
+
+            if (!selectedToppings.isEmpty()) {
+                initialReceiptTextArea.append("Toppings Added:\n");
+                for (String topping : selectedToppings) {
+                    double toppingPrice = toppingPrices.getOrDefault(topping, 0.0); // Get the price of each topping
+                    initialReceiptTextArea.append(topping + " - " + currencyFormatter.format(toppingPrice) + "\n");
+                    totalPayment += toppingPrice; // Add topping price to the total payment
+                }
+                initialReceiptTextArea.append("\n");
+            }
+
+            for (String hotdog : selectedHotdogs) {
+                int quantity = hotdogQuantities.getOrDefault(hotdog, 0);
+                double hotdogPrice = getHotdogPrice(hotdog);
+                double totalPrice = (hotdogPrice + toppingsPrice) * quantity; // Include the toppings price in the total price
+                initialReceiptTextArea.append(hotdog + " x " + quantity + " = " + currencyFormatter.format(totalPrice) + "\n");
+                if (quantity > 1) {
+                    initialReceiptTextArea.append("\t(" + currencyFormatter.format(hotdogPrice) + " each with toppings)\n");
+                }
+                totalPayment += totalPrice; // Add the hotdog's total price to the total payment
+            }
+            initialReceiptTextArea.append("\nTotal Price: " + currencyFormatter.format(totalPayment));
+            payReceiptButton.setEnabled(!selectedHotdogs.isEmpty()); // Enable Pay Receipt button if a hotdog is selected
+        }
+
+
+
+
+        private void handleToppingCheckbox(String toppingName, double toppingPrice, boolean isSelected) {
+            if (isSelected) {
+                // Show a notification message
+                String message = toppingName + " added to your hotdog.";
+                JOptionPane.showMessageDialog(this, message, "Topping Added", JOptionPane.INFORMATION_MESSAGE);
+
+                // Add the selected topping to the initial receipt
+                if (!selectedToppings.contains(toppingName)) {
+                    selectedToppings.add(toppingName);
+                    viewReceipt(); // Refresh the receipt display
+                }
+            } else {
+                // If the user unchecks the checkbox, remove the topping from the initial receipt
+                if (selectedToppings.contains(toppingName)) {
+                    selectedToppings.remove(toppingName);
+                    viewReceipt(); // Refresh the receipt display
+                }
+            }
+        }
+
+
+        private double getHotdogPrice(String hotdogName) {
+            switch (hotdogName) {
+                case "Regular Hotdog":
+                    return 30.0;
+                case "Bacon Hotdog":
+                    return 40.0;
+                case "Cheezy Hotdog":
+                    return 50.0;
+                case "Chicago-Style Hotdog":
+                    return 60.0;
+                case "Big Mac Dogs":
+                    return 70.0;
+                case "Ultimate Chili Dogs":
+                    return 80.0;
+                case "Chicken Sausage":
+                    return 90.0;
+                case "Cheezy Sausage":
+                    return 100.0;
+                default:
+                    return 0.0;
+            }
+        }
+
+        // Initialize the state of checkboxes when the program starts
+        private void initializeCheckboxState() {
+            boolean enableToppings = !selectedHotdogs.isEmpty(); // Enable toppings if a hotdog is selected
+
+            ketchupCheckbox.setSelected(false);
+            mustardCheckbox.setSelected(false);
+            mayoCheckbox.setSelected(false);
+            cheeseCheckbox.setSelected(false);
+            sauerkrautCheckbox.setSelected(false);
+            onionsCheckbox.setSelected(false);
+
+            ketchupCheckbox.setEnabled(enableToppings);
+            mustardCheckbox.setEnabled(enableToppings);
+            mayoCheckbox.setEnabled(enableToppings);
+            cheeseCheckbox.setEnabled(enableToppings);
+            sauerkrautCheckbox.setEnabled(enableToppings);
+            onionsCheckbox.setEnabled(enableToppings);
+        }
+
+        // Call this method whenever the selection of hotdogs changes
+        private void updateToppingsCheckboxState() {
+            boolean enableToppings = !selectedHotdogs.isEmpty(); // Enable toppings if a hotdog is selected
+
+            ketchupCheckbox.setEnabled(enableToppings);
+            mustardCheckbox.setEnabled(enableToppings);
+            mayoCheckbox.setEnabled(enableToppings);
+            cheeseCheckbox.setEnabled(enableToppings);
+            sauerkrautCheckbox.setEnabled(enableToppings);
+            onionsCheckbox.setEnabled(enableToppings);
+        }
+
+
+        private double getToppingsPrice() {
+            double toppingsPrice = 0.0;
+            if (cheeseCheckbox.isSelected()) {
+                toppingsPrice += 10.0;
+            }
+            if (sauerkrautCheckbox.isSelected()) {
+                toppingsPrice += 15.0;
+            }
+            if (onionsCheckbox.isSelected()) {
+                toppingsPrice += 5.0;
+            }
+            return toppingsPrice;
+        }
+
+
+        public static void main(String[] args) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    new VendingMachineGUI();
+                }
+            });
+        }
+    }
